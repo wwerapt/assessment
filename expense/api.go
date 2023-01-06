@@ -45,7 +45,7 @@ func (h *handler) GetIdExpensesHandler(c echo.Context) error {
 }
 
 func (h *handler) GetAllExpensesHandler(c echo.Context) error {
-	stmt, err := h.DB.Prepare("SELECT id, title, amount, note, tags  FROM expenses")
+	stmt, err := h.DB.Prepare("SELECT id, title, amount, note, tags FROM expenses ORDER BY id")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query all users statment:" + err.Error()})
 	}
@@ -67,4 +67,22 @@ func (h *handler) GetAllExpensesHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, expenses)
+}
+
+func (h *handler) UpdateExpensesHandler(c echo.Context) error {
+	exp := Expense{}
+	err := c.Bind(&exp)
+	id := c.Param("id")
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, Err{Message: err.Error()})
+	}
+
+	row := h.DB.QueryRow("UPDATE expenses SET title=$2, amount=$3, note=$4, tags=$5 WHERE id = $1 RETURNING id, title, amount , note, tags", id, exp.Title, exp.Amount, exp.Note, pq.Array(exp.Tags))
+	err = row.Scan(&exp.ID, &exp.Title, &exp.Amount, &exp.Note, pq.Array(&exp.Tags))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+	}
+
+	return c.JSON(http.StatusCreated, exp)
 }
