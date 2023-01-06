@@ -43,3 +43,28 @@ func (h *handler) GetIdExpensesHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, Err{Message: "can't scan user:" + err.Error()})
 	}
 }
+
+func (h *handler) GetAllExpensesHandler(c echo.Context) error {
+	stmt, err := h.DB.Prepare("SELECT id, title, amount, note, tags  FROM expenses")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query all users statment:" + err.Error()})
+	}
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: "can't query all users:" + err.Error()})
+	}
+
+	expenses := []Expense{}
+
+	for rows.Next() {
+		exp := Expense{}
+		err := rows.Scan(&exp.ID, &exp.Title, &exp.Amount, &exp.Note, pq.Array(&exp.Tags))
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, Err{Message: "can't scan user:" + err.Error()})
+		}
+		expenses = append(expenses, exp)
+	}
+
+	return c.JSON(http.StatusOK, expenses)
+}

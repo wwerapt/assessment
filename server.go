@@ -32,6 +32,7 @@ func main() {
 
 	e.POST("/expenses", Db.CreateExpensesHandler)
 	e.GET("/expenses/:id", Db.GetIdExpensesHandler)
+	e.GET("/expenses", Db.GetAllExpensesHandler)
 
 	log.Fatal(e.Start(os.Getenv("PORT")))
 
