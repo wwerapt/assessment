@@ -62,6 +62,22 @@ func seedExpense(t *testing.T) User {
 	return c
 }
 
+func seedPutExpense(t *testing.T) User {
+	var c expense.Expense
+	body := bytes.NewBufferString(`{
+		"id": 0,
+		"title": "apple smoothie",
+		"amount": 89,
+		"note": "no discount",
+		"tags": ["beverage"]
+	}`)
+	err := request(http.MethodPost, uri("expenses"), body).Decode(&c)
+	if err != nil {
+		t.Fatal("can't create uomer:", err)
+	}
+	return c
+}
+
 func TestGetAllExpensesHandler(t *testing.T) {
 	seedExpense(t)
 	var us []expense.Expense
@@ -100,6 +116,22 @@ func TestGetIdExpensesHandler(t *testing.T) {
 
 	var latest expense.Expense
 	res := request(http.MethodGet, uri("expenses", strconv.Itoa(c.ID)), nil)
+	err := res.Decode(&latest)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, c.ID, latest.ID)
+	assert.NotEmpty(t, latest.Title)
+	assert.NotEmpty(t, latest.Amount)
+	assert.NotEmpty(t, latest.Note)
+	assert.NotEmpty(t, latest.Tags)
+}
+
+func TestUpdateExpensesHandler(t *testing.T) {
+	c := seedPutExpense(t)
+
+	var latest expense.Expense
+	res := request(http.MethodPut, uri("expenses", strconv.Itoa(c.ID)), nil)
 	err := res.Decode(&latest)
 
 	assert.Nil(t, err)
