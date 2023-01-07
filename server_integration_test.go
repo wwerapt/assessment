@@ -47,7 +47,23 @@ func (r *Response) Decode(v interface{}) error {
 	return json.NewDecoder(r.Body).Decode(v)
 }
 
+func seedExpense(t *testing.T) User {
+	var c expense.Expense
+	body := bytes.NewBufferString(`{
+		"title": "strawberry smoothie",
+		"amount": 79,
+		"note": "night market promotion discount 10 bath", 
+		"tags": ["food", "beverage"]
+	}`)
+	err := request(http.MethodPost, uri("expenses"), body).Decode(&c)
+	if err != nil {
+		t.Fatal("can't create uomer:", err)
+	}
+	return c
+}
+
 func TestGetAllExpensesHandler(t *testing.T) {
+	seedExpense(t)
 	var us []expense.Expense
 
 	res := request(http.MethodGet, uri("expenses"), nil)
@@ -77,4 +93,20 @@ func TestCreateExpensesHandler(t *testing.T) {
 	assert.EqualValues(t, 79, u.Amount)
 	assert.EqualValues(t, "night market promotion discount 10 bath", u.Note)
 	assert.EqualValues(t, ["food", "beverage"], u.Tags)
+}
+
+func TestGetIdExpensesHandler(t *testing.T) {
+	c := seedExpense(t)
+
+	var latest expense.Expense
+	res := request(http.MethodGet, uri("expenses", strconv.Itoa(c.ID)), nil)
+	err := res.Decode(&latest)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, c.ID, latest.ID)
+	assert.NotEmpty(t, latest.Title)
+	assert.NotEmpty(t, latest.Amount)
+	assert.NotEmpty(t, latest.Note)
+	assert.NotEmpty(t, latest.Tags)
 }
