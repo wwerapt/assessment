@@ -48,17 +48,6 @@ func (r *Response) Decode(v interface{}) error {
 }
 
 func TestGetAllExpensesHandler(t *testing.T) {
-	var c expense.Expense
-	body := bytes.NewBufferString(`{
-		"title": "strawberry smoothie",
-		"amount": 79,
-		"note": "night market promotion discount 10 bath", 
-		"tags": ["food", "beverage"]
-	}`)
-	err := request(http.MethodPost, uri("expenses"), body).Decode(&c)
-	if err != nil {
-		t.Fatal("can't create expense:", err)
-	}
 	var us []expense.Expense
 
 	res := request(http.MethodGet, uri("expenses"), nil)
@@ -67,4 +56,25 @@ func TestGetAllExpensesHandler(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, http.StatusOK, res.StatusCode)
 	assert.Greater(t, len(us), 0)
+}
+
+func TestCreateExpensesHandler(t *testing.T) {
+	body := bytes.NewBufferString(`{
+		"title": "strawberry smoothie",
+		"amount": 79,
+		"note": "night market promotion discount 10 bath", 
+		"tags": ["food", "beverage"]
+	}`)
+	var u expense.Expense
+
+	res := request(http.MethodPost, uri("expenses"), body)
+	err := res.Decode(&u)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusCreated, res.StatusCode)
+	assert.NotEqual(t, 0, u.ID)
+	assert.EqualValues(t, "strawberry smoothie", u.Title)
+	assert.EqualValues(t, 79, u.Amount)
+	assert.EqualValues(t, "night market promotion discount 10 bath", u.Note)
+	assert.EqualValues(t, ["food", "beverage"], u.Tags)
 }
