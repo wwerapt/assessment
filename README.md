@@ -1,3 +1,8 @@
+
+# Environment Variables
+* $Env:DATABASE_URL = "postgres://lfyimtvt:vGhhqviKUS8AxYYl1F3N7UmBwmXla_LH@tiny.db.elephantsql.com/lfyimtvt"
+* $Env:PORT = ":2565"
+
 # Prerequisites
 * โปรเจคตั้งต้นคือ[โปรเจคนี้](https://github.com/KKGo-Software-engineering/assessment)
 * กำหนดให้ส่งลิ้งค์คำตอบคือ github repository ที่เก็บโค้ดของคุณ `https://github.com/<your github name>/assessment`
